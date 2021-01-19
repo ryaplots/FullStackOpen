@@ -1,0 +1,7 @@
+title newNoteSpa
+
+browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+note over browser: an event handler handles the form submit event in a different way from the traditional 
+server-->browser: status code 201 created
+note over browser: note is added to the list with the command notes.push(note)
+
