@@ -1,0 +1,6 @@
+div {
+    text-align: left;
+}
+div.show {
+    display: initial;
+}
