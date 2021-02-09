@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
+import Notification from './Notification'
 
 const App = () => {
     const [persons, setPersons] = useState([])
     const [newName, setNewName] = useState('')
     const [newNumber, setNewNumber] = useState('')
     const [filterName, setFilterName] = useState('')
+    const [errorMessage, setErrorMessage] = useState('')
 
-    useEffect(() => { 
-        console.log('effect')    
-        axios
-            .get('http://localhost:3001/persons')
-            .then(response => { 
-                console.log('promise fulfilled')        
-                setPersons(response.data) 
-            })  
-        }, [])  
-        console.log('render', persons.length, 'persons')
+    useEffect(() => {
+        personService
+            .getAll()
+            .then(response => {
+                setPersons(response.data)
+            })
+    }, [])
 
     const handleNameChange = (event) => {
         console.log(event.target.value)
@@ -40,23 +39,39 @@ const App = () => {
 
     const addName = (event) => {
         if (persons.find(e => e.name === newName) != undefined) {
-            alert(`${newName} is already added to phonebook`)
-            return
-        }
+            setErrorMessage(`The contact '${newName}' already exists`)        
+            setTimeout(() => { setErrorMessage(null) }, 5000)
+            setPersons(persons)
+        } else {
         event.preventDefault()
         const nameObject = {
             name: newName,
             number: newNumber,
             id: persons.length + 1
         }
-        setPersons(persons.concat(nameObject))
-        setNewName('')
-        console.log(persons);
+
+        personService
+            .create(nameObject)
+            .then(response => {
+                setPersons(persons.concat(nameObject))
+                setNewName('')
+                console.log(persons);
+            })
+        }
+    }
+
+    const handleDelete = (id) => {
+        window.confirm('Are you sure you want to detele this contact?');
+        personService
+            .del(id)
+            .then(() => personService.getAll())
+            .then(response => setPersons(response.data))
     }
 
     return (
         <div>
             <h2>Phonebook</h2>
+            <Notification message={errorMessage} />
             <p>filter by:</p>   <input value={filterName}
                 onChange={handleFilterChange}
             />
@@ -80,7 +95,10 @@ const App = () => {
             </form>
             <h2>Numbers</h2>
             <ul>
-                {persons.map(personInfo => <li key={personInfo.id}>{personInfo.name} {personInfo.number}</li>)}
+                {persons.map(personInfo =>
+                    <li key={personInfo.id}>{personInfo.name} {personInfo.number}
+                        <button onClick={() => handleDelete(personInfo.id)}>delete</button></li>
+                )}
             </ul>
         </div>
     )
