@@ -41,8 +41,8 @@ const App = () => {
         if (persons.find(e => e.name === newName) != undefined) {
             setErrorMessage(`The contact '${newName}' already exists`)        
             setTimeout(() => { setErrorMessage(null) }, 5000)
-            setPersons(persons)
-        } else {
+            return
+        }
         event.preventDefault()
         const nameObject = {
             name: newName,
@@ -52,12 +52,12 @@ const App = () => {
 
         personService
             .create(nameObject)
-            .then(response => {
+            .then(() => {
                 setPersons(persons.concat(nameObject))
                 setNewName('')
+                setNewNumber('')
                 console.log(persons);
             })
-        }
     }
 
     const handleDelete = (id) => {
