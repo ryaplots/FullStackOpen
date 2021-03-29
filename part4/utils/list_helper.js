@@ -1,19 +1,25 @@
-const palindrome = (string) => {
-    return string
-        .split('')
-        .reverse()
-        .join('')
+const dummy = (blogs) => {
+    return 1
 }
 
-const average = (array) => {
+const totalLikes = (blogs) => {
     const reducer = (sum, item) => {
-        return sum + item
+        return sum + item.likes
     }
 
-    return array.reduce(reducer, 0) / array.length
+    return blogs.reduce(reducer, 0)
 }
 
+const favoriteBlog = (blogs) => {
+    const likes = blogs.map(e => e.likes)
+    const blog = blogs[likes.indexOf(Math.max(...likes))]
+
+    return blog
+}
+
+
 module.exports = {
-    palindrome,
-    average,
+    dummy,
+    totalLikes,
+    favoriteBlog
 }
