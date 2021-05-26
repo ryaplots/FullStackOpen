@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
+import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -11,9 +12,6 @@ const App = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [message, setMessage] = useState(null)
-    const [newTitle, setNewTitle] = useState('')
-    const [newUrl, setNewUrl] = useState('')
-    const [newAuthor, setNewAuthor] = useState('')
     const [user, setUser] = useState(null)
 
 
@@ -69,40 +67,24 @@ const App = () => {
         }
     }
 
-    const handleTitleChange = event => {
-        setNewTitle(event.target.value)
-    }
-
-    const handleUrlChange = event => {
-        setNewUrl(event.target.value)
-    }
-
-    const handleAuthorChange = event => {
-        setNewAuthor(event.target.value)
-    }
-
-    const addBlog = async event => {
-        event.preventDefault()
-
-        const blogObject = {
-            title: newTitle,
-            author: newAuthor,
-            url: newUrl,
-            likes: 0
-        }
-
+    const addBlog = async (blogObject) => {
         try {
-            const addedBlog = await blogService.create(blogObject)
-            setBlogs(blogs.concat(addedBlog))
-            setMessage(`You added "${addedBlog.title}" by ${addedBlog.author}.`)
+            blogFormRef.current.toggleVisibility()
+            const createdBlog = await blogService
+                .create(blogObject)
+            setMessage(
+                `Blog ${blogObject.title} was successfully added`
+            )
+            setBlogs(blogs.concat(createdBlog))
+            setMessage(null)
             setTimeout(() => {
                 setMessage(null)
             }, 5000)
-            setNewTitle('')
-            setNewUrl('')
-            setNewAuthor('')
-        } catch (error) {
-            setMessage(error.response.data.error)
+        } catch (exception) {
+            setMessage(
+                `Cannot add blog ${blogObject.title}`
+            )
+            setMessage(null)
             setTimeout(() => {
                 setMessage(null)
             }, 5000)
@@ -121,28 +103,25 @@ const App = () => {
                     handlePasswordChange={({ target }) => setPassword(target.value)}
                 >
                 </LoginForm>
-                <button onClick={() => setLoginVisible(false)}>cancel</button>
             </Togglable>
         )
     }
 
-    const blogForm = () => (
-        <form onSubmit={addBlog}>
-            <p>
-                Title: <input value={newTitle} onChange={handleTitleChange} />
-            </p>
-            <p>
-                Author: <input value={newAuthor} onChange={handleAuthorChange} />
-            </p>
-            <p>
-                Url: <input value={newUrl} onChange={handleUrlChange} />
-            </p>
-            <button type='submit'>Post</button>
-        </form>
-    )
+    const blogFormRef = useRef()
+
+    const blogForm = () => {
+        return (
+            <Togglable buttonLabel='new blog' ref={blogFormRef}>
+                <BlogForm
+                    createBlog={addBlog}
+                ></BlogForm>
+            </Togglable>
+        )
+    }
 
     return (
         <div>
+            <h1>BlogList</h1>
             {user === null ? (
                 loginForm()
             ) : (
@@ -153,12 +132,12 @@ const App = () => {
 
                         <Notification message={message} />
 
-                        <h1>Blogs</h1>
+                        <h2>Blogs</h2>
                         {blogs.map(blog =>
                             <Blog key={blog.id} blog={blog} />
                         )}
 
-                        <h1>Create new</h1>
+                        <h2>Create new</h2>
                         {blogForm()}
                     </div>
                 )}
